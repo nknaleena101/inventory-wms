@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 
 export enum MovementType {
@@ -9,29 +9,30 @@ export enum MovementType {
 }
 
 @Entity('inventory_movements')
-@Index(['productId', 'binId', 'status']) // Multi-column index for blazing fast lookups
+@Index(['productId', 'binId', 'status']) 
 export class InventoryMovement {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string; // Notice the ! operator added here
 
   @Column({ name: 'product_id' })
-  productId: string;
+  productId!: string;
 
   @Column({ name: 'bin_id', nullable: true })
-  binId: string; // The specific warehouse shelf location
-
+  binId!: string; 
+  
   @Column()
-  quantity: number; // e.g., +50 (Received) or -5 (Shipped)
-
+  quantity!: number; 
+  
   @Column({ type: 'enum', enum: MovementType })
-  type: MovementType;
-
+  type!: MovementType;
+  
   @Column({ default: 'COMPLETED' })
-  status: string;
-
+  status!: string;
+  
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ManyToOne(() => Product, (product) => product.movements)
-  product: Product;
+  @JoinColumn({ name: 'product_id' }) 
+  product!: Product;
 }

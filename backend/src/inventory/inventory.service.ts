@@ -1,6 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { InventoryMovement, MovementType } from './entities/movement.entity';
+import { Product } from '../products/entities/product.entity';
+import { StockStatusDto } from './dto/stock-status.dto';
 
 @Injectable()
 export class InventoryService {
@@ -42,5 +44,44 @@ export class InventoryService {
     } finally {
       await queryRunner.release();
     }
+  }
+  async getAggregatedStockLevels(): Promise<StockStatusDto[]> {
+    // Run a high-performance raw aggregation across the ledger indexes
+    const rawResults = await this.dataSource.manager
+      .createQueryBuilder(Product, 'product')
+      .leftJoin('product.movements', 'movement')
+      .select([
+        'product.id AS id',
+        'product.sku AS sku',
+        'product.name AS name',
+        'product.reorder_point AS "reorderPoint"',
+        'COALESCE(SUM(movement.quantity), 0)::INTEGER AS "currentStock"',
+        // Grabs the last known bin location for simplicity in our dashboard grid
+        'MAX(movement.bin_id) AS "binLocation"'
+      ])
+      .groupBy('product.id')
+      .orderBy('product.sku', 'ASC')
+      .getRawMany();
+
+    // Map raw DB figures into business-rule domain objects
+    return rawResults.map((row) => {
+      let status: 'HEALTHY' | 'LOW_STOCK' | 'OUT_OF_STOCK' = 'HEALTHY';
+      
+      if (row.currentStock <= 0) {
+        status = 'OUT_OF_STOCK';
+      } else if (row.currentStock <= row.reorderPoint) {
+        status = 'LOW_STOCK';
+      }
+
+      return {
+        id: row.id,
+        sku: row.sku,
+        name: row.name,
+        binLocation: row.binLocation || 'UNASSIGNED',
+        currentStock: row.currentStock,
+        reorderPoint: row.reorderPoint,
+        status,
+      };
+    });
   }
 }
