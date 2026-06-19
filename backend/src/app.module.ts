@@ -4,6 +4,7 @@ import { DatabaseModule } from './common/database.module';
 import { ProductsModule } from './products/products.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { SeedModule } from './common/seed.module';
+import { ReplenishmentModule } from './replenishment/replenishment.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SeedModule } from './common/seed.module';
     InventoryModule,
     // Seeder Module
     SeedModule,
+    ReplenishmentModule, 
   ],
 })
 export class AppModule {}
