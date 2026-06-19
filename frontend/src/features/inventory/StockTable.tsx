@@ -76,14 +76,14 @@ export const StockTable: React.FC<{ data: StockRow[] }> = ({ data }) => {
           </span>
         ),
       }),
-      columnHelper.accessor('currentStock', {
-        header: 'Qty',
-        cell: (info) => (
-          <span className="font-mono text-sm font-semibold tabular-nums text-slate-200">
-            {info.getValue()}
-          </span>
-        ),
-      }),
+      // columnHelper.accessor('currentStock', {
+      //   header: 'Qty',
+      //   cell: (info) => (
+      //     <span className="font-mono text-sm font-semibold tabular-nums text-slate-200">
+      //       {info.getValue()}
+      //     </span>
+      //   ),
+      // }),
       columnHelper.display({
         id: 'status',
         header: 'Status',
